@@ -152,3 +152,62 @@
   text-decoration: line-through;
   color: #94A3B8;
 }
+
+/* ===== 生活管理台扩展 ===== */
+/* 手动计划类型色 */
+.type-plan { background-color: #F0FDF4; color: #059669; }
+
+/* 计划时间块颜色（文字+浅底） */
+.create-study { background-color: #EFF6FF; color: #2563EB; }
+.create-sport { background-color: #FEF3C7; color: #D97706; }
+.create-rest { background-color: #ECFDF5; color: #059669; }
+.create-read { background-color: #F5F3FF; color: #7C3AED; }
+.create-life { background-color: #FCE7F3; color: #DB2777; }
+.create-other { background-color: #F1F5F9; color: #64748B; }
+
+/* 时间轴彩色块（实色） */
+.block-homework { background-color: #3B82F6; }
+.block-exam { background-color: #EF4444; }
+.block-meeting { background-color: #8B5CF6; }
+.block-payment { background-color: #F59E0B; }
+.block-checkin { background-color: #06B6D4; }
+.block-plan { background-color: #10B981; }
+.block-other { background-color: #94A3B8; }
+.block-study { background-color: #2563EB; }
+.block-sport { background-color: #D97706; }
+.block-rest { background-color: #059669; }
+.block-read { background-color: #7C3AED; }
+.block-life { background-color: #DB2777; }
+
+/* 列表入场 */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-fade-up {
+  animation: fadeUp 0.35s ease-out both;
+}
+
+/* 打卡勾选弹跳 */
+@keyframes checkPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.18); }
+  70% { transform: scale(0.94); }
+  100% { transform: scale(1); }
+}
+.animate-check-pop {
+  animation: checkPop 0.55s ease-out;
+}
+
+/* 周历选中列 */
+.week-day-active {
+  background: linear-gradient(180deg, #D1FAE5 0%, #A7F3D0 100%);
+}
+
+/* 隐藏 number input 箭头 */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+

@@ -7,6 +7,11 @@ export interface Task {
   title: string;
   type: string;
   due_date: string | null;
+  start_time?: string | null;
+  end_time?: string | null;
+  is_manual?: boolean;
+  create_type?: string | null;
+  color?: string | null;
   location: string | null;
   notes: string | null;
   status: string;
@@ -140,6 +145,19 @@ export function useTasks() {
     return json;
   }, []);
 
+  const createTask = useCallback(async (data: Partial<Task>) => {
+    const res = await fetch("/api/tasks", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    const json = await res.json();
+    if (json.success) {
+      setTasks(prev => [...prev, json.data as Task]);
+    }
+    return json;
+  }, []);
+
   const batchCreate = useCallback(async (items: Array<Partial<Task>>) => {
     const res = await fetch("/api/tasks", {
       method: "PUT",
@@ -157,5 +175,5 @@ export function useTasks() {
     fetchTasks();
   }, [fetchTasks]);
 
-  return { tasks, loading, error, fetchTasks, updateTask, deleteTask, batchCreate };
+  return { tasks, loading, error, fetchTasks, createTask, updateTask, deleteTask, batchCreate };
 }

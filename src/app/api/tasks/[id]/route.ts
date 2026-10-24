@@ -9,7 +9,7 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { title, type, due_date, location, notes, status, completed_at } = body;
+    const { title, type, due_date, start_time, end_time, is_manual, create_type, color, location, notes, status, completed_at } = body;
 
     const client = getSupabaseClient();
     const updateData: Record<string, unknown> = { updated_at: new Date().toISOString() };
@@ -17,6 +17,11 @@ export async function PUT(
     if (title !== undefined) updateData.title = title;
     if (type !== undefined) updateData.type = type;
     if (due_date !== undefined) updateData.due_date = due_date || null;
+    if (start_time !== undefined) updateData.start_time = start_time || null;
+    if (end_time !== undefined) updateData.end_time = end_time || null;
+    if (is_manual !== undefined) updateData.is_manual = Boolean(is_manual);
+    if (create_type !== undefined) updateData.create_type = create_type || null;
+    if (color !== undefined) updateData.color = color || null;
     if (location !== undefined) updateData.location = location || null;
     if (notes !== undefined) updateData.notes = notes || null;
     if (status !== undefined) {
