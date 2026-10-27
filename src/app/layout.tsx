@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
+import PasswordGate from '@/components/password-gate';
 
 export const viewport: Viewport = {
   width: 'device-width',
@@ -28,9 +29,11 @@ export default function RootLayout({
   return (
     <html lang="zh-CN">
       <body className="antialiased">
-        <div className="mx-auto max-w-[480px] min-h-screen relative">
-          {children}
-        </div>
+        <PasswordGate>
+          <div className="mx-auto max-w-[480px] min-h-screen relative">
+            {children}
+          </div>
+        </PasswordGate>
       </body>
     </html>
   );
