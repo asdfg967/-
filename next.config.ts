@@ -1,6 +1,8 @@
 import type { NextConfig } from 'next';
 import path from 'path';
 
+process.env.COZE_API_TOKEN ="pat_0BlAcY2DJ56TBTOwZzXqlU9WrJeDJhRZuzmn8wklGvAf7hZZbKt4FEaibtquWDhD";
+
 const nextConfig: NextConfig = {
   // outputFileTracingRoot: path.resolve(__dirname, '../../'),  // Uncomment and add 'import path from "path"' if needed
   /* config options here */
