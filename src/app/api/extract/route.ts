@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import { LLMClient, Config, HeaderUtils } from "coze-coding-dev-sdk";
 
 const EXTRACT_SYSTEM_PROMPT = `你是一个班级通知解析助手。你的任务是从学生收到的班级通知文本中提取待办事项。
 
@@ -41,12 +40,14 @@ function getCurrentDateTime(): string {
   return now.toLocaleString("zh-CN", options);
 }
 
+const LLM_API_KEY = process.env.LLM_API_KEY;
+const LLM_API_BASE_URL = process.env.LLM_API_BASE_URL;
+const LLM_MODEL = process.env.LLM_MODEL;
+
 // POST /api/extract - Extract tasks from text or images
 export async function POST(request: NextRequest) {
   try {
     const customHeaders = HeaderUtils.extractForwardHeaders(request.headers);
-    const config = new Config();
-    const client = new LLMClient(config, customHeaders);
 
     const body = await request.json();
     const { text, images } = body as { text?: string; images?: string[] };
