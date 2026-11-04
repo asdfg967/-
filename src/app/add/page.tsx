@@ -58,7 +58,6 @@ export default function AddPage() {
       setExtractError("请上传截图");
       return;
     }
-
     setExtracting(true);
     setExtractError(null);
 
@@ -89,15 +88,28 @@ export default function AddPage() {
     }
   };
 
+  // 👇 核心修改：改成 localStorage 本地保存，彻底抛弃数据库！
   const handleConfirm = async (items: Array<Partial<Task>>) => {
-    const res = await fetch("/api/tasks", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ tasks: items }),
-    });
-    const json = await res.json();
-    if (json.success) {
+    try {
+      // 1. 读取本地已有数据
+      const existingStr = localStorage.getItem("my_tasks");
+      const existingTasks = existingStr ? JSON.parse(existingStr) : [];
+      
+      // 2. 把新识别出来的数据加上 ID 并合并进去
+      const newTasks = items.map(item => ({
+        ...item,
+        id: Date.now().toString() + Math.random().toString(36).substring(2), // 生成随机ID
+        completed: false,
+        created_at: new Date().toISOString()
+      }));
+      
+      // 3. 保存到浏览器
+      localStorage.setItem("my_tasks", JSON.stringify([...newTasks, ...existingTasks]));
+      
+      // 4. 跳回主页
       router.push("/");
+    } catch (error) {
+      alert("保存失败，请重试");
     }
   };
 
@@ -125,24 +137,6 @@ export default function AddPage() {
             onClick={() => setMode("text")}
             className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all btn-press ${
               mode === "text"
-                ? "bg-[#10B981] text-white shadow-sm"
-                : "bg-white text-[#64748B] border border-[#E2E8F0]"
-            }`}
-          >
-            <div className="flex items-center justify-center gap-2">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="16" y1="13" x2="8" y2="13" />
-                <line x1="16" y1="17" x2="8" y2="17" />
-              </svg>
-              文字粘贴
-            </div>
-          </button>
-          <button
-            onClick={() => setMode("image")}
-            className={`flex-1 py-3 rounded-xl text-sm font-semibold transition-all btn-press ${
-              mode === "image"
                 ? "bg-[#10B981] text-white shadow-sm"
                 : "bg-white text-[#64748B] border border-[#E2E8F0]"
             }`}
@@ -259,4 +253,3 @@ export default function AddPage() {
       )}
     </div>
   );
-}
