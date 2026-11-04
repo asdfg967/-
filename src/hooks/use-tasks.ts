@@ -116,9 +116,12 @@ export function useTasks() {
   return {
     tasks,
     loading,
-    createtask:addTasks,
+    addTasks,
     toggleTask,
     deleteTask,
-    updateTask
+    updateTask,
+    createtask: addTasks,
+    createTask: addTasks,
+    updatetask: updateTask
   };
 }
