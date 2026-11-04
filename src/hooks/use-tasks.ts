@@ -116,7 +116,7 @@ export function useTasks() {
   return {
     tasks,
     loading,
-    addTasks,
+    createtask:addTasks,
     toggleTask,
     deleteTask,
     updateTask
