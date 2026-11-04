@@ -107,11 +107,18 @@ export function useTasks() {
     localStorage.setItem("my_tasks", JSON.stringify(updated));
   };
 
+  const updateTask = (id: string, updates: Partial<Task>) => {
+    const updated = tasks.map(t => t.id === id ? { ...t, ...updates } : t);
+  setTasks(updated);
+  localStorage.setItem("my_tasks", JSON.stringify(updated));
+};
+
   return {
     tasks,
     loading,
     addTasks,
     toggleTask,
     deleteTask
+    updateTask
   };
 }
