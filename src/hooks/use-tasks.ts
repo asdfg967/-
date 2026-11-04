@@ -14,11 +14,55 @@ export type Task = {
   created_at?: string;
 };
 
+// 👇 补全的零件 1：类型标签
+export const TYPE_LABELS: Record<string, string> = {
+  homework: "作业",
+  exam: "考试",
+  meeting: "会议",
+  payment: "缴费",
+  checkin: "打卡",
+  other: "其他",
+};
+
+// 👇 补全的零件 2：类型颜色
+export const TYPE_COLORS: Record<string, string> = {
+  homework: "bg-blue-100 text-blue-600",
+  exam: "bg-red-100 text-red-600",
+  meeting: "bg-purple-100 text-purple-600",
+  payment: "bg-orange-100 text-orange-600",
+  checkin: "bg-green-100 text-green-600",
+  other: "bg-gray-100 text-gray-600",
+};
+
+// 👇 补全的零件 3：获取紧急程度（根据截止时间算）
+export function getUrgency(due_date: string | null): "overdue" | "today" | "upcoming" | "none" {
+  if (!due_date) return "none";
+  const now = new Date();
+  const due = new Date(due_date);
+  const diffDays = Math.ceil((due.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
+  
+  if (diffDays < 0) return "overdue";
+  if (diffDays === 0) return "today";
+  return "upcoming";
+}
+
+// 👇 补全的零件 4：格式化日期
+export function formatDueDate(due_date: string | null): string {
+  if (!due_date) return "无截止时间";
+  const due = new Date(due_date);
+  return due.toLocaleString("zh-CN", {
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+// 👇 原本的核心逻辑
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // 1. 页面加载时，从浏览器里把数据拿出来
   useEffect(() => {
     try {
       const localData = localStorage.getItem("my_tasks");
@@ -31,7 +75,6 @@ export function useTasks() {
     setLoading(false);
   }, []);
 
-  // 2. 保存数据的方法
   const addTasks = (newTasks: Partial<Task>[]) => {
     const formattedTasks: Task[] = newTasks.map(item => ({
       id: Date.now().toString() + Math.random().toString(36).substring(2),
@@ -49,14 +92,12 @@ export function useTasks() {
     localStorage.setItem("my_tasks", JSON.stringify(updated));
   };
 
-  // 3. 切换完成状态
   const toggleTask = (id: string) => {
     const updated = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
     setTasks(updated);
     localStorage.setItem("my_tasks", JSON.stringify(updated));
   };
 
-  // 4. 删除任务
   const deleteTask = (id: string) => {
     const updated = tasks.filter(t => t.id !== id);
     setTasks(updated);
