@@ -11,6 +11,7 @@ export type Task = {
   start_time?: string|null;
   color?: string;
   status?: string;
+  is_manual?: boolean;
   location: string | null;
   notes: string | null;
   completed: boolean;
