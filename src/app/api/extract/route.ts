@@ -90,8 +90,7 @@ export async function POST(request: NextRequest) {
       { role: "system", content: systemPrompt },
       { role: "user", content: contentParts },
     ];
-
-    const response = await client.invoke(messages, {
+    
       model: "doubao-seed-2-0-pro-260215",
       temperature: 0.2,
     });
