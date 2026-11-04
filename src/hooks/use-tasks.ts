@@ -9,6 +9,7 @@ export type Task = {
   type: string;
   due_date: string | null;
   start_time?: string|null;
+  color?: string;
   location: string | null;
   notes: string | null;
   completed: boolean;
