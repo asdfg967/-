@@ -41,13 +41,12 @@ function getCurrentDateTime(): string {
 }
 
 const LLM_API_KEY = process.env.LLM_API_KEY;
-const LLM_API_BASE_URL = process.env.LLM_API_BASE_URL;
-const LLM_MODEL = process.env.LLM_MODEL;
+const LLM_API_BASE_URL = process.env.LLM_API_BASE_URL || "https://api.deepseek.com/v1";
+const LLM_MODEL = process.env.LLM_MODEL || "deepseek-chat";
 
 // POST /api/extract - Extract tasks from text or images
 export async function POST(request: NextRequest) {
   try {
-
     const body = await request.json();
     const { text, images } = body as { text?: string; images?: string[] };
 
@@ -90,10 +89,29 @@ export async function POST(request: NextRequest) {
       { role: "system", content: systemPrompt },
       { role: "user", content: contentParts },
     ];
-    
-      model: "doubao-seed-2-0-pro-260215",
-      temperature: 0.2,
+
+    // ==========================================
+    // 这里就是之前断掉的地方，已经帮你补齐了
+    // ==========================================
+    const response = await fetch(`${LLM_API_BASE_URL}/chat/completions`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${LLM_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: LLM_MODEL,
+        messages: messages,
+        temperature: 0.2
+      })
     });
+
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+
+    const responseData = await response.json();
+    const content = responseData.choices[0].message.content || "";
 
     // Parse the response
     let items: Array<{
@@ -105,7 +123,6 @@ export async function POST(request: NextRequest) {
     }> = [];
 
     try {
-      const content = response.content.trim();
       // Try to extract JSON from the response
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -117,7 +134,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         error: "AI 返回格式异常，请重试",
-        raw: response.content,
+        raw: content,
       });
     }
 
