@@ -47,7 +47,6 @@ const LLM_MODEL = process.env.LLM_MODEL;
 // POST /api/extract - Extract tasks from text or images
 export async function POST(request: NextRequest) {
   try {
-    const customHeaders = HeaderUtils.extractForwardHeaders(request.headers);
 
     const body = await request.json();
     const { text, images } = body as { text?: string; images?: string[] };
