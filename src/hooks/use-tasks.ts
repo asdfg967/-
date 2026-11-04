@@ -38,7 +38,7 @@ export const TYPE_COLORS: Record<string, string> = {
 };
 
 // 👇 补全的零件 3：获取紧急程度（根据截止时间算）
-export function getUrgency(due_date: string | null): "overdue" | "today" | "upcoming" | "none" {
+export function getUrgency(due_date: string | null): "overdue" |"expired"|  "today" | "upcoming" | "none" {
   if (!due_date) return "none";
   const now = new Date();
   const due = new Date(due_date);
