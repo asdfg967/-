@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { LLMClient, Config, HeaderUtils } from "coze-coding-dev-sdk";
 
 const EXTRACT_SYSTEM_PROMPT = `你是一个班级通知解析助手。你的任务是从学生收到的班级通知文本中提取待办事项。
 
@@ -25,11 +26,6 @@ const EXTRACT_SYSTEM_PROMPT = `你是一个班级通知解析助手。你的任�
 请严格按照以下 JSON 格式返回，不要包含其他内容：
 {"items": [{"title": "...", "type": "...", "due_date": "...", "location": "...", "notes": "..."}]}`;
 
-// 配置大模型 API（支持 OpenAI 兼容接口）
-const LLM_API_KEY = process.env.LLM_API_KEY || "";
-const LLM_API_BASE_URL = process.env.LLM_API_BASE_URL || "https://api.openai.com/v1";
-const LLM_MODEL = process.env.LLM_MODEL || "gpt-4o-mini";
-
 function getCurrentDateTime(): string {
   const now = new Date();
   const options: Intl.DateTimeFormatOptions = {
@@ -48,17 +44,9 @@ function getCurrentDateTime(): string {
 // POST /api/extract - Extract tasks from text or images
 export async function POST(request: NextRequest) {
   try {
-    // 检查 API Key 是否配置
-    if (!LLM_API_KEY) {
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: "AI 服务未配置，请在 Netlify 环境变量中设置 LLM_API_KEY",
-          hint: "支持豆包、DeepSeek、OpenAI 等兼容 OpenAI 接口的模型"
-        },
-        { status: 500 }
-      );
-    }
+    const customHeaders = HeaderUtils.extractForwardHeaders(request.headers);
+    const config = new Config();
+    const client = new LLMClient(config, customHeaders);
 
     const body = await request.json();
     const { text, images } = body as { text?: string; images?: string[] };
@@ -103,35 +91,10 @@ export async function POST(request: NextRequest) {
       { role: "user", content: contentParts },
     ];
 
-    // 调用大模型 API（OpenAI 兼容格式）
-    const response = await fetch(`${LLM_API_BASE_URL}/chat/completions`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${LLM_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: LLM_MODEL,
-        messages,
-        temperature: 0.2,
-      }),
+    const response = await client.invoke(messages, {
+      model: "doubao-seed-2-0-pro-260215",
+      temperature: 0.2,
     });
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("LLM API error:", response.status, errorText);
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: `AI 服务调用失败: ${response.status}`,
-          detail: errorText 
-        },
-        { status: 500 }
-      );
-    }
-
-    const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "";
 
     // Parse the response
     let items: Array<{
@@ -143,6 +106,7 @@ export async function POST(request: NextRequest) {
     }> = [];
 
     try {
+      const content = response.content.trim();
       // Try to extract JSON from the response
       const jsonMatch = content.match(/\{[\s\S]*\}/);
       if (jsonMatch) {
@@ -154,14 +118,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({
         success: false,
         error: "AI 返回格式异常，请重试",
-        raw: content,
+        raw: response.content,
       });
     }
 
     return NextResponse.json({ success: true, items });
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
-    console.error("Extract API error:", message);
     return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
