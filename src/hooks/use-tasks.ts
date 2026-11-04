@@ -118,7 +118,7 @@ export function useTasks() {
     loading,
     addTasks,
     toggleTask,
-    deleteTask
+    deleteTask,
     updateTask
   };
 }
