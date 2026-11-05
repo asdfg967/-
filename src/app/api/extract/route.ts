@@ -1,146 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
-
-const EXTRACT_SYSTEM_PROMPT = `你是一个班级通知解析助手。你的任务是从学生收到的班级通知文本中提取待办事项。
-
-当前日期时间：{current_datetime}
-
-请从通知中提取所有待办事项，每个事项包含以下字段：
-- title: 事项标题（简洁明了）
-- type: 事项类型，只能是以下之一：homework(作业)、exam(考试)、meeting(会议)、payment(缴费)、checkin(打卡)、other(其他)
-- due_date: 截止日期时间，ISO 8601 格式（如 "2025-01-20T15:00:00+08:00"）。注意：
-  - "本周五" 需要根据当前日期换算为具体日期
-  - "下周一" 需要根据当前日期换算
-  - "明天" "后天" 等相对时间需要换算
-  - 如果通知只说了日期没说时间，默认设为 23:59
-  - 如果无法确定具体时间，设为 null
-- location: 地点（如有），没有则为 null
-- notes: 备注/原始说明（保留重要细节），没有则为 null
-
-重要规则：
-1. 一条通知可能包含多个事项，请全部提取
-2. 如果通知中没有可提取的待办事项，返回空数组
-3. 标题要简洁，不超过30个字
-4. 类型判断要准确：布置的作业是 homework，测验/考试是 exam，班会/家长会是 meeting，交费是 payment，签到/打卡是 checkin
-
-请严格按照以下 JSON 格式返回，不要包含其他内容：
-{"items": [{"title": "...", "type": "...", "due_date": "...", "location": "...", "notes": "..."}]}`;
-
-function getCurrentDateTime(): string {
-  const now = new Date();
-  const options: Intl.DateTimeFormatOptions = {
-    timeZone: "Asia/Shanghai",
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    weekday: "long",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: false,
-  };
-  return now.toLocaleString("zh-CN", options);
-}
-
-const LLM_API_KEY = process.env.LLM_API_KEY;
-const LLM_API_BASE_URL = process.env.LLM_API_BASE_URL || "https://api.deepseek.com/v1";
-const LLM_MODEL = process.env.LLM_MODEL || "deepseek-chat";
-
-// POST /api/extract - Extract tasks from text or images
-export async function POST(request: NextRequest) {
-  try {
-    const body = await request.json();
-    const { text, images } = body as { text?: string; images?: string[] };
-
-    if (!text && (!images || images.length === 0)) {
-      return NextResponse.json(
-        { success: false, error: "请提供文字内容或上传图片" },
-        { status: 400 }
-      );
-    }
-
-    const currentDatetime = getCurrentDateTime();
-    const systemPrompt = EXTRACT_SYSTEM_PROMPT.replace("{current_datetime}", currentDatetime);
-
-    // Build message content
-    const contentParts: Array<
-      | { type: "text"; text: string }
-      | { type: "image_url"; image_url: { url: string; detail?: "high" | "low" } }
-    > = [];
-
-    if (text) {
-      contentParts.push({ type: "text", text: `请从以下通知中提取待办事项：\n\n${text}` });
-    }
-
-    if (images && images.length > 0) {
-      contentParts.push({
-        type: "text",
-        text: images.length > 1
-          ? "请从以下多张截图中识别文字内容，并提取所有待办事项："
-          : "请从以下截图中识别文字内容，并提取所有待办事项：",
-      });
-      for (const img of images) {
-        contentParts.push({
-          type: "image_url",
-          image_url: { url: img, detail: "high" },
-        });
-      }
-    }
-
-    const messages: Array<{ role: "system" | "user" | "assistant"; content: string | typeof contentParts }> = [
-      { role: "system", content: systemPrompt },
-      { role: "user", content: contentParts },
-    ];
-
-    // ==========================================
-    // 这里就是之前断掉的地方，已经帮你补齐了
-    // ==========================================
-    const response = await fetch(`${LLM_API_BASE_URL}/chat/completions`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${LLM_API_KEY}`
-      },
-      body: JSON.stringify({
-        model: LLM_MODEL,
-        messages: messages,
-        temperature: 0.2
-      })
-    });
-
-    if (!response.ok) {
-      throw new Error(`API request failed with status ${response.status}`);
-    }
-
-    const responseData = await response.json();
-    const content = responseData.choices[0].message.content || "";
-
-    // Parse the response
-    let items: Array<{
-      title: string;
-      type: string;
-      due_date: string | null;
-      location: string | null;
-      notes: string | null;
-    }> = [];
-
-    try {
-      // Try to extract JSON from the response
-      const jsonMatch = content.match(/\{[\s\S]*\}/);
-      if (jsonMatch) {
-        const parsed = JSON.parse(jsonMatch[0]);
-        items = parsed.items || [];
-      }
-    } catch {
-      // If parsing fails, return the raw content for debugging
-      return NextResponse.json({
-        success: false,
-        error: "AI 返回格式异常，请重试",
-        raw: content,
-      });
-    }
-
-    return NextResponse.json({ success: true, items });
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
-    return NextResponse.json({ success: false, error: message }, { status: 500 });
-  }
-}
+<br/><br/>const EXTRACT_SYSTEM_PROMPT = `你是一个班级通知解析助手。你的任务是从学生收到的班级通知文本中提取待办事项。
+<br/><br/>当前日期时间：{current_datetime}
+<br/><br/>请从通知中提取所有待办事项，每个事项包含以下字段：<br/>- title: 事项标题（简洁明了）<br/>- type: 事项类型，只能是以下之一：homework(作业)、exam(考试)、meeting(会议)、payment(缴费)、checkin(打卡)、other(其他)<br/>- due_date: 截止日期时间，ISO 8601 格式。注意：如果通知只说了日期没说时间，默认设为 23:59。如果无法确定，设为 null。<br/>- location: 地点（如有），没有则为 null<br/>- notes: 备注/原始说明，没有则为 null
+<br/><br/>重要规则：<br/>1. 一条通知可能包含多个事项，请全部提取。<br/>2. 标题要简洁，不超过30个字。<br/>3. 类型判断要准确。
+<br/><br/>请严格按照以下 JSON 格式返回，不要包含其他内容：<br/>{"items": [{"title": "...", "type": "...", "due_date": "...", "location": "...", "notes": "..."}]}`;
+<br/><br/>function getCurrentDateTime(): string {<br/>  const now = new Date();<br/>  return now.toLocaleString("zh-CN", { timeZone: "Asia/Shanghai" });<br/>}
+  <br/><br/>const LLM_API_KEY = process.env.LLM_API_KEY;<br/>const LLM_API_BASE_URL = process.env.LLM_API_BASE_URL || "https://api.deepseek.com/v1";<br/>// 强制使用支持图片的模型<br/>const LLM_MODEL = "deepseek-flash"; 
+  <br/><br/>export async function POST(request: NextRequest) {<br/>  try {<br/>    const body = await request.json();<br/>    const { text, images } = body as { text?: string; images?: string[] };
+                                                                          <br/><br/>    if (!text && (!images || images.length === 0)) {<br/>      return NextResponse.json({ success: false, error: "请提供文字内容或上传图片" }, { status: 400 });<br/>    }
+                                                                          <br/><br/>    const systemPrompt = EXTRACT_SYSTEM_PROMPT.replace("{current_datetime}", getCurrentDateTime());<br/><br/>    // 构建支持文字和图片的数组格式<br/>    const contentParts: any[] = [];
+                                                                            <br/>    <br/>    if (text) {<br/>      contentParts.push({ type: "text", text: `请从以下通知中提取待办事项：\n\n${text}` });<br/>    }
+                                                              <br/><br/>    if (images && images.length > 0) {<br/>      contentParts.push({ type: "text", text: "请从以下截图中识别文字内容，并提取所有待办事项：" });<br/>      for (const img of images) {<br/>        contentParts.push({<br/>          type: "image_url",<br/>          image_url: { url: img } // 直接把前端传过来的 base64 图片塞进去<br/>        });<br/>      }<br/>    }
+                                                                                                              <br/><br/>    // 发送请求给 DeepSeek<br/>    const response = await fetch(`${LLM_API_BASE_URL}/chat/completions`, {<br/>      method: 'POST',<br/>      headers: {<br/>        'Content-Type': 'application/json',<br/>        'Authorization': `Bearer ${LLM_API_KEY}`<br/>      },<br/>      body: JSON.stringify({<br/>        model: LLM_MODEL,<br/>        messages: [<br/>          { role: "system", content: systemPrompt },<br/>          { role: "user", content: contentParts }<br/>        ],<br/>        temperature: 0.1<br/>      })<br/>    });
+                                                                                                                <br/><br/>    if (!response.ok) {<br/>      const errorData = await response.text();<br/>      throw new Error(`API Error: ${response.status} - ${errorData}`);<br/>    }
+                                                                                                              <br/><br/>    const responseData = await response.json();<br/>    const content = responseData.choices[0].message.content || "";
+                                                                                                              <br/><br/>    // 解析 AI 返回的 JSON<br/>    let items: any[] = [];<br/>    try {<br/>      const jsonMatch = content.match(/\{[\s\S]*\}/);<br/>      if (jsonMatch) {<br/>        items = JSON.parse(jsonMatch[0]).items || [];<br/>      }<br/>    } catch {<br/>      return NextResponse.json({ success: false, error: "AI 返回格式异常", raw: content });<br/>    }
+                                                                                                                <br/><br/>    return NextResponse.json({ success: true, items });<br/><br/>  } catch (err: any) {<br/>    return NextResponse.json({ success: false, error: err.message || "未知错误" }, { status: 500 });<br/>  }<br/>}
